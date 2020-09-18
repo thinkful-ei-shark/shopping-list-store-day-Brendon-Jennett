@@ -1,11 +1,18 @@
 const store = {
   items: [],
-  hideCheckedItems: false
+  hideCheckedItems: false,
+
 };
 
 const generateItemElement = function (item) {
   let itemTitle = `<span class="shopping-item shopping-item__checked">${item.name}</span>`;
   if (!item.checked) {
+    itemTitle = `
+     <span class='shopping-item'>${item.name}</span>
+    `;
+  }
+  if (item.rename) {
+    //itemTitle has the edit we need
     itemTitle = `
       <form class="js-edit-item">
         <input class="shopping-item" type="text" value="${item.name}" />
@@ -23,9 +30,36 @@ const generateItemElement = function (item) {
         <button class="shopping-item-delete js-item-delete">
           <span class="button-label">delete</span>
         </button>
+        <button class="shopping-item-rename js-item-rename">
+          <span class="button-label">rename</span>
+        </button>
       </div>
     </li>`;
 };
+//c Use titleRename here and set it to change class according to boolean value
+const handleRenameItem = function () {
+  $('.js-shopping-list').on('click', '.js-item-rename', function (event) {
+    // change attribute type to text
+    let id = getItemIdFromElement(event.currentTarget)
+    const foundItem = store.items.find(item => item.id === id);
+    foundItem.rename = !foundItem.rename
+    render()
+  })
+}
+
+
+//////////////////////////////////////////////////////////////
+//                                                          //
+// Next function will submit name to store.items[index].name//
+const insertNewName = function () {
+  $('.js-shopping-list').on('click', '.js-item-rename', function (event) {
+    let id = getItemIdFromElement(event.currentTarget)
+    if (id.rename === true) {
+      id.name = $('.js-edit-item').val()
+    }
+  })
+
+}
 
 const generateShoppingItemsString = function (shoppingList) {
   const items = shoppingList.map((item) => generateItemElement(item));
@@ -35,6 +69,7 @@ const generateShoppingItemsString = function (shoppingList) {
 const render = function () {
   // Filter item list if store prop is true by item.checked === false
   let items = [...store.items];
+  console.log(...store.items)
   if (store.hideCheckedItems) {
     items = items.filter(item => !item.checked);
   }
@@ -45,7 +80,7 @@ const render = function () {
 };
 
 const addItemToShoppingList = function (itemName) {
-  store.items.push({ id: cuid(), name: itemName, checked: false });
+  store.items.push({ id: cuid(), name: itemName, checked: false, rename: false, });
 };
 
 const handleNewItemSubmit = function () {
@@ -79,7 +114,7 @@ const getItemIdFromElement = function (item) {
 
 /**
  * Responsible for deleting a list item.
- * @param {string} id 
+ * @param {string} id
  */
 const deleteListItem = function (id) {
   const index = store.items.findIndex(item => item.id === id);
@@ -132,6 +167,8 @@ const handleEditShoppingItemSubmit = function () {
 };
 
 const bindEventListeners = function () {
+  handleRenameItem();
+  insertNewName();
   handleNewItemSubmit();
   handleItemCheckClicked();
   handleDeleteItemClicked();
